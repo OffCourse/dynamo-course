@@ -24,7 +24,10 @@
 (defn get-courses []
   (let [c (chan)
         query {:TableName "courses"}]
-    (.scan dynamo (clj->js query) #(go (>! c (handle-db-response %2))))
+    (.scan dynamo (clj->js query) #(go (>! c
+                                           (if %1
+                                             (println %1)
+                                             (handle-db-response %2)))))
     c))
 
 (defmulti get-data
@@ -45,7 +48,7 @@
 
 (defn ^:export handler [event context cb]
   (go
-    (let [{:keys [type] :as event} (convert-js event)
+    (let [event (convert-js event)
           data (<! (get-data event))]
       (cb nil (clj->js data)))))
 
