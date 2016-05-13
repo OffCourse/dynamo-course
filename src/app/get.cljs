@@ -21,7 +21,8 @@
 
 (defmethod get :collection [{:keys [type collection] :as event}]
   (go
-    (let [courses (<! (get {:type :courses}))
+    (let [{:keys [collection-type collection-name]} collection
+          courses (<! (get {:type :courses}))
           ids (map :course-id courses)]
       (assoc collection :course-ids ids))))
 
