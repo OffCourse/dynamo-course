@@ -3,6 +3,7 @@
  :resource-paths  #{"resources"}
  :dependencies '[[adzerk/boot-cljs            "1.7.228-1"      :scope "test"]
                  [org.clojure/core.async "0.2.374"]
+                 [com.rpl/specter             "0.9.2"]
                  [org.clojure/clojurescript   "1.7.228"]])
 
 (require
