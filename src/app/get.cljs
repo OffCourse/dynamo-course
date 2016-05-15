@@ -18,7 +18,9 @@
 (defmethod get :courses [{:keys [course-ids] :as event}]
   (go
     (let [db (<! (db/s3->))]
-      (:courses db))))
+      (->> (:courses db)
+           (filter (fn [{:keys [course-id]}] (contains? (into #{} course-ids) course-id))))
+      )))
 
 (defn course-tags [course]
   (->> course
@@ -36,7 +38,8 @@
 
 (defmethod get :collection [{:keys [type collection] :as event}]
   (go
-    (let [courses (-> (<! (get {:type :courses}))
+    (let [courses (-> (<! (db/s3->))
+                      :courses
                       (filter-courses collection))
           ids (map :course-id courses)]
       (assoc collection :course-ids ids))))
