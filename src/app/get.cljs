@@ -2,7 +2,8 @@
   (:refer-clojure :exclude [get])
   (:require [app.db :as db]
             [com.rpl.specter :refer [ALL select-first]]
-            [cljs.core.async :refer [<! chan >!]])
+            [cljs.core.async :refer [<! chan >!]]
+            [clojure.set :as set])
   (:require-macros [cljs.core.async.macros :refer [go]]))
 
 (defmulti get (fn [{:keys [type]}] (keyword type)))
@@ -19,10 +20,24 @@
     (let [db (<! (db/s3->))]
       (:courses db))))
 
+(defn course-tags [course]
+  (->> course
+       :checkpoints
+       (map :tags)
+       (apply set/union)
+       (into #{})))
+
+(defn filter-courses [courses {:keys [collection-name collection-type]}]
+  (case (keyword collection-type)
+    :curators (filter (fn [course] (= collection-name (:curator course))) courses)
+    :flags (filter (fn [course] (set/superset? (into #{} (:flags course)) #{collection-name})) courses)
+    :tags (filter (fn [course] (set/superset? (course-tags course) #{collection-name})) courses)
+    courses))
+
 (defmethod get :collection [{:keys [type collection] :as event}]
   (go
-    (let [{:keys [collection-type collection-name]} collection
-          courses (<! (get {:type :courses}))
+    (let [courses (-> (<! (get {:type :courses}))
+                      (filter-courses collection))
           ids (map :course-id courses)]
       (assoc collection :course-ids ids))))
 
