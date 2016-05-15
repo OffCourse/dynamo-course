@@ -11,7 +11,8 @@
 (defmethod get :course [{:keys [course] :as event}]
   (let [{:keys [course-slug curator]} course]
     (go
-      (let [courses (<! (get {:type :courses}))]
+      (let [courses (-> (<! (db/s3->))
+                        :courses)]
         (select-first [ALL #(and (= (:course-slug %) course-slug)
                                  (= (:curator %) curator))] courses)))))
 
