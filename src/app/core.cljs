@@ -12,9 +12,11 @@
 (defn ^:export handler [event context cb]
   (go
     (let [{:keys [type] :as event} (utils/->js event)
+          type (if (= type "collection") "courses" type)
           data (<! (get event))
           response {:type type
                     type data}]
+      (println type)
       (cb nil (clj->js response)))))
 
 (defn -main [] identity)

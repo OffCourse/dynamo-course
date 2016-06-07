@@ -39,11 +39,9 @@
 
 (defmethod get :collection [{:keys [type collection] :as event}]
   (go
-    (let [courses (-> (<! (db/s3->))
-                      :courses
-                      (filter-courses collection))
-          ids (map :course-id courses)]
-      (assoc collection :course-ids ids))))
+    (-> (<! (db/s3->))
+        :courses
+        (filter-courses collection))))
 
 (defmethod get :default [event]
   (go
